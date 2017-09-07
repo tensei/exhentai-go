@@ -25,11 +25,7 @@ type (
 		loggedIn      bool
 		Ratelimit     time.Duration
 	}
-	apiPost struct {
-		Gidlist   [][]interface{} `json:"gidlist"`
-		Method    string          `json:"method"`
-		Namespace int             `json:"namespace"`
-	}
+
 	apiResponse struct {
 		Gmetadata []struct {
 			ArchiverKey  string   `json:"archiver_key"`
@@ -61,13 +57,17 @@ const (
 func NewClient() (Exhentai, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
-		return Exhentai{}, fmt.Errorf("%s", err)
+		return Exhentai{}, err
 	}
 	client := &http.Client{
 		Timeout: time.Second * 10,
 		Jar:     jar,
 	}
-	return Exhentai{"", "", client, false, DefaultRatelimit}, nil
+	return Exhentai{
+		client:    client,
+		loggedIn:  false,
+		Ratelimit: DefaultRatelimit,
+	}, nil
 }
 
 func (ex *Exhentai) Login(memberid, passhash string) error {
@@ -75,16 +75,19 @@ func (ex *Exhentai) Login(memberid, passhash string) error {
 }
 
 func (ex *Exhentai) login(memberid, passhash string) error {
+	ex.ipb_member_id = memberid
+	ex.ipb_pass_hash = passhash
+
 	cookies := []*http.Cookie{
 		&http.Cookie{
 			Name:   "ipb_member_id",
-			Value:  memberid,
+			Value:  ex.ipb_member_id,
 			Path:   "/",
 			Domain: CookieDomain,
 		},
 		&http.Cookie{
 			Name:   "ipb_pass_hash",
-			Value:  passhash,
+			Value:  ex.ipb_pass_hash,
 			Path:   "/",
 			Domain: CookieDomain,
 		},
