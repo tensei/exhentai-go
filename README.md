@@ -14,7 +14,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-  // ipb_member_id and ipb_pass_hash from exhentai site cookies
+  	// ipb_member_id and ipb_pass_hash from exhentai site cookies
 	err = exhentai.Login("xxxxx", "xxxxx")
 	if err != nil {
 		fmt.Println(err)
@@ -31,7 +31,7 @@ func main() {
 	}
 	fmt.Println(ms)
 
-	err = exhentai.Download("https://exhentai.org/g/xxxxx/xxxxx/", "/mnt/e/Development/Go/src/exhentai-go")
+	err = exhentai.Download("https://exhentai.org/g/{galleryid}/{gallerytoken}/", "/mnt/e/Development/Go/src/exhentai-go")
 	fmt.Println(err)
 }
 ```
