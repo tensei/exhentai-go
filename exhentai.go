@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -189,7 +190,7 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 
 	fmt.Println(len(imagelinks), files)
 
-	for i, imglink := range imagelinks {
+	for _, imglink := range imagelinks {
 		resp, err := ex.client.Get(imglink)
 		if err != nil {
 			return err
@@ -201,6 +202,8 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 			return err
 		}
 		original := false
+		fsplit := strings.Split(imglink, "-")
+		folder := filepath.Join(savepath, fsplit[len(fsplit)-1])
 		doc.Find("a").Each(func(index int, item *goquery.Selection) {
 			if href, ok := item.Attr("href"); ok && strings.Contains(href, "https://exhentai.org/fullimg.php?gid=") {
 				fmt.Println("Found Original", imglink)
@@ -220,7 +223,7 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 					return
 				}
 
-				err = ioutil.WriteFile(fmt.Sprintf("%s/%d.%s", savepath, i, extension[len(extension)-1]), body, 0755)
+				err = ioutil.WriteFile(fmt.Sprintf("%s.%s", folder, extension[len(extension)-1]), body, 0755)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -246,7 +249,7 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 						fmt.Println(err)
 						return
 					}
-					err = ioutil.WriteFile(fmt.Sprintf("%s/%d.%s", savepath, i, extension[len(extension)-1]), body, 0755)
+					err = ioutil.WriteFile(fmt.Sprintf("%s.%s", folder, extension[len(extension)-1]), body, 0755)
 					if err != nil {
 						fmt.Println(err)
 					}
