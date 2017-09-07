@@ -163,7 +163,7 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 		}
 	})
 
-	imagepages = removeDuplicates(imagepages)
+	imagepages = distinct(imagepages)
 
 	if len(imagepages) > 0 {
 		for _, page := range imagepages {
@@ -186,7 +186,7 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 			})
 		}
 	}
-	imagelinks = removeDuplicates(imagelinks)
+	imagelinks = distinct(imagelinks)
 
 	fmt.Println(len(imagelinks), files)
 
@@ -262,24 +262,18 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 	return nil
 }
 
-func removeDuplicates(elements []string) []string {
-	result := []string{}
+func distinct(input []string) []string {
+	u := make([]string, 0, len(input))
+	m := make(map[string]bool)
 
-	for i := 0; i < len(elements); i++ {
-		// Scan slice for a previous element of the same value.
-		exists := false
-		for v := 0; v < i; v++ {
-			if elements[v] == elements[i] {
-				exists = true
-				break
-			}
-		}
-		// If no previous element exists, append this one.
-		if !exists {
-			result = append(result, elements[i])
+	for _, val := range input {
+		if _, ok := m[val]; !ok {
+			m[val] = true
+			u = append(u, val)
 		}
 	}
-	return result
+
+	return u
 }
 
 func getGalleryIdToken(url string) (gallery_id, gallery_token string) {
@@ -311,9 +305,7 @@ func (ex *Exhentai) metadata(url string) (apiResponse, error) {
 	if err != nil {
 		return metadata, err
 	}
+
 	err = json.Unmarshal(b, &metadata)
-	if err != nil {
-		return metadata, err
-	}
-	return metadata, nil
+	return metadata, err
 }
