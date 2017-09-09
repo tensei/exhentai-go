@@ -19,16 +19,9 @@ import (
 
 type (
 	Exhentai struct {
-		ipb_member_id string
-		ipb_pass_hash string
-		client        *http.Client
-		loggedIn      bool
-		Ratelimit     time.Duration
-	}
-	apiPost struct {
-		Gidlist   [][]interface{} `json:"gidlist"`
-		Method    string          `json:"method"`
-		Namespace int             `json:"namespace"`
+		client    *http.Client
+		loggedIn  bool
+		Ratelimit time.Duration
 	}
 	apiResponse struct {
 		Gmetadata []struct {
@@ -58,16 +51,16 @@ const (
 	ApiUrl           = "https://api.e-hentai.org/api.php"
 )
 
-func NewClient() (Exhentai, error) {
+func NewClient() (*Exhentai, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
-		return Exhentai{}, fmt.Errorf("%s", err)
+		return &Exhentai{}, fmt.Errorf("%s", err)
 	}
 	client := &http.Client{
 		Timeout: time.Second * 10,
 		Jar:     jar,
 	}
-	return Exhentai{"", "", client, false, DefaultRatelimit}, nil
+	return &Exhentai{client, false, DefaultRatelimit}, nil
 }
 
 func (ex *Exhentai) Login(memberid, passhash string) error {
@@ -148,12 +141,15 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 		return err
 	}
 	imagelinks := []string{}
-	doc.Find("a").Each(func(index int, item *goquery.Selection) {
+	// linkfinder
+	lf := func(index int, item *goquery.Selection) {
 		href, ok := item.Attr("href")
 		if ok && strings.Contains(href, fmt.Sprintf("%d-", metadata.Gmetadata[0].Gid)) {
 			imagelinks = append(imagelinks, href)
 		}
-	})
+	}
+	//use linkfinder func
+	doc.Find("a").Each(lf)
 
 	imagepages := []string{}
 	doc.Find("a").Each(func(index int, item *goquery.Selection) {
@@ -177,13 +173,8 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 			if err != nil {
 				return err
 			}
-
-			doc.Find("a").Each(func(index int, item *goquery.Selection) {
-				href, ok := item.Attr("href")
-				if ok && strings.Contains(href, fmt.Sprintf("%d-", metadata.Gmetadata[0].Gid)) {
-					imagelinks = append(imagelinks, href)
-				}
-			})
+			//use linkfinder func
+			doc.Find("a").Each(lf)
 		}
 	}
 	imagelinks = distinct(imagelinks)
