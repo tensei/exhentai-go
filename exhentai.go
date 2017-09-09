@@ -54,13 +54,17 @@ const (
 func NewClient() (*Exhentai, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
-		return &Exhentai{}, fmt.Errorf("%s", err)
+		return &Exhentai{}, err
 	}
 	client := &http.Client{
 		Timeout: time.Second * 10,
 		Jar:     jar,
 	}
-	return &Exhentai{client, false, DefaultRatelimit}, nil
+	return &Exhentai{
+		client:    client,
+		loggedIn:  false,
+		Ratelimit: DefaultRatelimit,
+	}, nil
 }
 
 func (ex *Exhentai) Login(memberid, passhash string) error {
@@ -68,6 +72,7 @@ func (ex *Exhentai) Login(memberid, passhash string) error {
 }
 
 func (ex *Exhentai) login(memberid, passhash string) error {
+
 	cookies := []*http.Cookie{
 		&http.Cookie{
 			Name:   "ipb_member_id",

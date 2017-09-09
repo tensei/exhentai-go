@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	exhentai "exhentai-go"
 	"fmt"
+
+	exhentai "github.com/tensei/exhentai-go"
 )
 
 func main() {
@@ -17,7 +18,8 @@ func main() {
 		fmt.Println(err)
 	}
 
-	metadata, err := exhentai.Metadata("https://exhentai.org/g/xxxxx/xxxxx/")
+	gallery := "https://exhentai.org/g/{GalleryID}/{GalleryToken}/"
+	metadata, err := exhentai.Metadata(gallery)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -28,6 +30,6 @@ func main() {
 	}
 	fmt.Println(ms)
 
-	err = exhentai.Download("https://exhentai.org/g/xxxxx/xxxxx/", "/mnt/e/Development/Go/src/exhentai-go")
+	err = exhentai.Download(gallery, "/save/path")
 	fmt.Println(err)
 }
