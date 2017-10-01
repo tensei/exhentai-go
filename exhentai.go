@@ -48,7 +48,7 @@ const (
 	DefaultRatelimit = time.Second / 2
 	CookieDomain     = ".exhentai.org"
 	DefaultUrl       = "https://exhentai.org"
-	ApiUrl           = "https://api.e-hentai.org/api.php"
+	ApiUrl           = "https://exhentai.org/api.php"
 )
 
 func NewClient() (*Exhentai, error) {
