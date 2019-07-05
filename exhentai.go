@@ -9,7 +9,6 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -72,11 +71,11 @@ func NewClient() (*Exhentai, error) {
 }
 
 // Login login using your ipb_member_id and ipb_pass_hash cookie
-func (ex *Exhentai) Login(memberid, passhash string) error {
+func (ex *Exhentai) Login(memberid, passhash string) (bool, error) {
 	return ex.login(memberid, passhash)
 }
 
-func (ex *Exhentai) login(memberid, passhash string) error {
+func (ex *Exhentai) login(memberid, passhash string) (bool, error) {
 	cookies := []*http.Cookie{
 		&http.Cookie{
 			Name:   "ipb_member_id",
@@ -93,30 +92,30 @@ func (ex *Exhentai) login(memberid, passhash string) error {
 	}
 	url, err := url.Parse(defaultURL)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	ex.client.Jar.SetCookies(url, cookies)
 
 	resp, err := ex.client.Get(defaultURL)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		// fmt.Println(err)
+		return false, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		// fmt.Println(err)
+		return false, err
 	}
 
 	if strings.Contains(string(body), "Favorites") {
 		ex.loggedIn = true
-		fmt.Println("Logged in")
-		return nil
+		// fmt.Println("Logged in")
+		return true, nil
 	}
-	return fmt.Errorf("Couldn't login")
+	return false, fmt.Errorf("Couldn't login")
 }
 
 // Download download the gallery to the save path given
@@ -131,14 +130,14 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 
 	metadata, err := ex.metadata(gallery)
 	if err != nil {
-		fmt.Println("Couldn't get metadata")
+		// fmt.Println("Couldn't get metadata")
 		return err
 	}
 
-	files, err := strconv.Atoi(metadata.Gmetadata[0].Filecount)
-	if err != nil {
-		return err
-	}
+	// files, err := strconv.Atoi(metadata.Gmetadata[0].Filecount)
+	// if err != nil {
+	// 	return err
+	// }
 
 	resp, err := ex.client.Get(gallery)
 	if err != nil {
@@ -189,7 +188,7 @@ func (ex *Exhentai) download(gallery, savepath string) error {
 	}
 	imagelinks = distinct(imagelinks)
 
-	fmt.Println(len(imagelinks), files)
+	// fmt.Println(len(imagelinks), files)
 
 	for _, imglink := range imagelinks {
 		resp, err := ex.client.Get(imglink)

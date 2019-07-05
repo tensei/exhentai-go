@@ -13,7 +13,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = exhentai.Login("xxxxx", "xxxxx")
+	_, err = exhentai.Login("xxxxx", "xxxxx")
 	if err != nil {
 		log.Fatal(err)
 	}
