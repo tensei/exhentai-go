@@ -18,12 +18,14 @@ import (
 )
 
 type (
+	// Exhentai client storing everything
 	Exhentai struct {
 		client    *http.Client
 		loggedIn  bool
 		Ratelimit time.Duration
 	}
-	apiResponse struct {
+	// APIResponse metadata api response
+	APIResponse struct {
 		Gmetadata []struct {
 			ArchiverKey  string   `json:"archiver_key"`
 			Category     string   `json:"category"`
@@ -45,12 +47,14 @@ type (
 )
 
 const (
+	// DefaultRatelimit default ratelimit for downloading pictures
 	DefaultRatelimit = time.Second / 2
-	CookieDomain     = ".exhentai.org"
-	DefaultUrl       = "https://exhentai.org"
-	ApiUrl           = "https://exhentai.org/api.php"
+	cookieDomain     = ".exhentai.org"
+	defaultURL       = "https://exhentai.org"
+	apiURL           = "https://exhentai.org/api.php"
 )
 
+// NewClient creates a client for handling everything
 func NewClient() (*Exhentai, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
@@ -67,6 +71,7 @@ func NewClient() (*Exhentai, error) {
 	}, nil
 }
 
+// Login login using your ipb_member_id and ipb_pass_hash cookie
 func (ex *Exhentai) Login(memberid, passhash string) error {
 	return ex.login(memberid, passhash)
 }
@@ -78,23 +83,23 @@ func (ex *Exhentai) login(memberid, passhash string) error {
 			Name:   "ipb_member_id",
 			Value:  memberid,
 			Path:   "/",
-			Domain: CookieDomain,
+			Domain: cookieDomain,
 		},
 		&http.Cookie{
 			Name:   "ipb_pass_hash",
 			Value:  passhash,
 			Path:   "/",
-			Domain: CookieDomain,
+			Domain: cookieDomain,
 		},
 	}
-	url, err := url.Parse(DefaultUrl)
+	url, err := url.Parse(defaultURL)
 	if err != nil {
 		return err
 	}
 
 	ex.client.Jar.SetCookies(url, cookies)
 
-	resp, err := ex.client.Get(DefaultUrl)
+	resp, err := ex.client.Get(defaultURL)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -115,6 +120,7 @@ func (ex *Exhentai) login(memberid, passhash string) error {
 	return fmt.Errorf("Couldn't login")
 }
 
+// Download download the gallery to the save path given
 func (ex *Exhentai) Download(gallery, savepath string) error {
 	return ex.download(gallery, savepath)
 }
@@ -272,25 +278,26 @@ func distinct(input []string) []string {
 	return u
 }
 
-func getGalleryIdToken(url string) (gallery_id, gallery_token string) {
+func getGalleryIDToken(url string) (string, string) {
 	us := strings.Split(url, "/")
 	return us[len(us)-3], us[len(us)-2]
 }
 
-func (ex *Exhentai) Metadata(url string) (apiResponse, error) {
+// Metadata returns the metadata for the given url
+func (ex *Exhentai) Metadata(url string) (APIResponse, error) {
 	return ex.metadata(url)
 }
 
-func (ex *Exhentai) metadata(url string) (apiResponse, error) {
-	metadata := apiResponse{}
+func (ex *Exhentai) metadata(url string) (APIResponse, error) {
+	metadata := APIResponse{}
 	if !ex.loggedIn {
 		return metadata, fmt.Errorf("Not logged in")
 	}
 
-	gallery_id, gallery_token := getGalleryIdToken(url)
+	galleryID, galleryToken := getGalleryIDToken(url)
 
-	data := fmt.Sprintf("{\"method\": \"gdata\",\"gidlist\": [[%s,\"%s\"]],\"namespace\": 1}", gallery_id, gallery_token)
-	apiresp, err := ex.client.Post(ApiUrl, "Application/json", bytes.NewBufferString(data))
+	data := fmt.Sprintf("{\"method\": \"gdata\",\"gidlist\": [[%s,\"%s\"]],\"namespace\": 1}", galleryID, galleryToken)
+	apiresp, err := ex.client.Post(apiURL, "Application/json", bytes.NewBufferString(data))
 	if err != nil {
 		return metadata, err
 	}
