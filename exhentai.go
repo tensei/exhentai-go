@@ -58,7 +58,7 @@ const (
 func NewClient() (*Exhentai, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
-		return &Exhentai{}, err
+		return nil, err
 	}
 	client := &http.Client{
 		Timeout: time.Second * 10,
@@ -77,7 +77,6 @@ func (ex *Exhentai) Login(memberid, passhash string) error {
 }
 
 func (ex *Exhentai) login(memberid, passhash string) error {
-
 	cookies := []*http.Cookie{
 		&http.Cookie{
 			Name:   "ipb_member_id",

@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 
 	exhentai "github.com/tensei/exhentai-go"
 )
@@ -10,26 +10,26 @@ import (
 func main() {
 	exhentai, err := exhentai.NewClient()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	err = exhentai.Login("xxxxx", "xxxxx")
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	gallery := "https://exhentai.org/g/{GalleryID}/{GalleryToken}/"
 	metadata, err := exhentai.Metadata(gallery)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	ms, err := json.MarshalIndent(metadata, "", "\t")
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
-	fmt.Println(ms)
+	log.Println(ms)
 
 	err = exhentai.Download(gallery, "/save/path")
-	fmt.Println(err)
+	log.Println(err)
 }
